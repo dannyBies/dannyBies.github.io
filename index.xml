@@ -1,22 +1,22 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>BiesBlog</title>
-    <link>https://example.com/</link>
+    <link>https://dannybies.github.io/</link>
     <description>Recent content on BiesBlog</description>
     <generator>Hugo - gohugo.io</generator>
     <language>en</language>
     <contact>danny_bies@live.nl</contact>
     <copyright>&copy; <a href="https://github.com/dannybies">Danny van der Biezen</a> 2020</copyright>
     
-        <atom:link href="https://example.com/index.xml" rel="self" type="application/rss+xml" />
+        <atom:link href="https://dannybies.github.io/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>Creating a New Theme</title>
-      <link>https://example.com/creating-a-new-theme/</link>
+      <link>https://dannybies.github.io/creating-a-new-theme/</link>
       <pubDate>Sun, 28 Sep 2014 00:00:00 +0000</pubDate>
       <author>Danny van der Biezen</author>
-      <guid>https://example.com/creating-a-new-theme/</guid>
+      <guid>https://dannybies.github.io/creating-a-new-theme/</guid>
       <description></description>
       
       <content>&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;

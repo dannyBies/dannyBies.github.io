@@ -15,24 +15,33 @@
        <pubDate>Wed, 26 Feb 2020 00:00:00 +0000</pubDate>
        
        <guid>https://dannybies.github.io/posts/creating-a-new-theme/</guid>
-       <description>&lt;p&gt;Last week I decided I wanted to experiment a little bit with Blazor WebAssembly to get to know it a bit better. I have always wanted to have my own blog but I was never sure if I had anything interesting to write about.  So my very first blog post will be about how I used Blazor to write a blog, which is quite nice :).&lt;/p&gt;
+       <description>&lt;p&gt;Last week I decided I wanted to experiment a little bit with Blazor WebAssembly to get to know it a bit better. I have always wanted to have my own blog, but I was never sure if I had anything interesting to write about.  So my very first blog post will be about how I used Blazor to write a blog, which is quite nice :).&lt;/p&gt;
 &lt;blockquote&gt;
-&lt;p&gt;The tech-savvy reader might have noticed that this blog is using &lt;a href=&#34;https://gohugo.io/&#34;&gt;Hugo&lt;/a&gt; instead of Blazor WebAssembly. A static website is a lot easier to maintain and host than a web app using a preview version of Blazor. I would recommend not to introduce unneccesary complexity into your applications unless you are experimenting ;).&lt;/p&gt;
+&lt;p&gt;The tech-savvy reader might have noticed that this blog is using &lt;a href=&#34;https://gohugo.io/&#34;&gt;Hugo&lt;/a&gt; instead of Blazor WebAssembly. A static website is a lot easier to maintain and host than a web app using a preview version of Blazor. I would recommend not to introduce unnecessary complexity into your applications unless you are experimenting like me ;).&lt;/p&gt;
 &lt;/blockquote&gt;
-&lt;h2 id=&#34;the-tech-stack&#34;&gt;The tech stack&lt;/h2&gt;
+&lt;h2 id=&#34;tech-stack&#34;&gt;Tech stack&lt;/h2&gt;
 &lt;p&gt;I decided on the following tech stack:&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;Database - MongoDB&lt;/li&gt;
 &lt;li&gt;Frontend - Blazor WebAssembly&lt;/li&gt;
-&lt;li&gt;Backend - ASP.NET Core hosted service&lt;/li&gt;
+&lt;li&gt;Backend - ASP.NET Core&lt;/li&gt;
 &lt;li&gt;Realtime communication - ASP.NET Core SignalR&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;On January 28th, 2020, Microsoft released Blazor WebAssembly 3.2.0 Preview 1. With this release comes support for the .NET SignalR client. which can be used to communicate between the client and server using WebSockets. I haven&amp;rsquo;t had to chance to use either of these so this seemed like a perfect way for me to learn a bit more about it.&lt;/p&gt;
 &lt;h2 id=&#34;architecture&#34;&gt;Architecture&lt;/h2&gt;
 &lt;p&gt;The idea behind this project is to make use of MongoDB Change Streams. Leveraging &lt;a href=&#34;%5Bhttps://www.mongodb.com/blog/post/an-introduction-to-change-streams%5D(https://www.mongodb.com/blog/post/an-introduction-to-change-streams)&#34;&gt;Change Streams&lt;/a&gt; to stream back any changes to our blog posts from the database to our backend. Once we receive this data SignalR would then propagate this change to our frontend which would be updated in real-time. 
 The Change Stream would be continuously listening for changes in the database, to achieve this I will be using a hosted service inside my ASP.NET Core server.&lt;/p&gt;
+&lt;p&gt;A benefit to this approach is that my blog will be updated in real-time while only making changes to my database layer and leaving my deployed blog as is. I could then use any number of ways to update my blog using a different application like an android app, a web app or just inserting directly into the database like:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;{
+    CreatedBy: &amp;quot;Admin&amp;quot;,
+    CreatedOn: &amp;quot;2020-02-26T00:00:00.000+00:00&amp;quot;,
+    Title: &amp;quot;My first blog post&amp;quot;,
+    Description: &amp;quot;A short description&amp;quot;,
+    Content: &amp;quot;My very first blog post&amp;quot;
+}
+&lt;/code&gt;&lt;/pre&gt;
 &lt;h2 id=&#34;next-up&#34;&gt;Next up&lt;/h2&gt;
-&lt;p&gt;Lots of text, not a lot of code. In the next part I will dive into the code and talk a bit more about my experience using Blazor. Stay tuned!&lt;/p&gt;
+&lt;p&gt;Lots of text, not a lot of code. In the next part I will dive into the code and talk more about my experience using Blazor. Stay tuned!&lt;/p&gt;
 </description>
      </item>
    

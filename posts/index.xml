@@ -12,10 +12,10 @@
    
      <item>
        <title>How to overengineer a blog using Blazor WebAssembly - The architecture</title>
-       <link>https://dannybies.github.io/posts/creating-a-new-theme/</link>
+       <link>https://dannybies.github.io/posts/how-to-overengineer-a-blog-blazor/</link>
        <pubDate>Wed, 26 Feb 2020 00:00:00 +0000</pubDate>
        
-       <guid>https://dannybies.github.io/posts/creating-a-new-theme/</guid>
+       <guid>https://dannybies.github.io/posts/how-to-overengineer-a-blog-blazor/</guid>
        <description>&lt;p&gt;Last week I decided I wanted to experiment a little bit with Blazor WebAssembly to get to know it a bit better. I have always wanted to have my own blog, but I was never sure if I had anything interesting to write about.  So my very first blog post will be about how I used Blazor to write a blog, which is quite nice :).&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;The tech-savvy reader might have noticed that this blog is using &lt;a href=&#34;https://gohugo.io/&#34;&gt;Hugo&lt;/a&gt; instead of Blazor WebAssembly. A static website is a lot easier to maintain and host than a web app using a preview version of Blazor. I would recommend not to introduce unnecessary complexity into your applications unless you are experimenting like me ;).&lt;/p&gt;

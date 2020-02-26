@@ -117,7 +117,7 @@
 </ul>
 <p>On January 28th, 2020, Microsoft released Blazor WebAssembly 3.2.0 Preview 1. With this release comes support for the .NET SignalR client. which can be used to communicate between the client and server using WebSockets. I haven&rsquo;t had to chance to use either of these so this seemed like a perfect way for me to learn a bit more about it.</p>
 <h2 id="architecture">Architecture</h2>
-<p>The idea behind this project is to make use of MongoDB Change Streams. Leveraging <a href="%5Bhttps://www.mongodb.com/blog/post/an-introduction-to-change-streams%5D(https://www.mongodb.com/blog/post/an-introduction-to-change-streams)">Change Streams</a> to stream back any changes to our blog posts from the database to our backend. Once we receive this data SignalR would then propagate this change to our frontend which would be updated in real-time. 
+<p>The idea behind this project is to make use of MongoDB Change Streams. Leveraging <a href="https://www.mongodb.com/blog/post/an-introduction-to-change-streams">Change Streams</a> to stream back any changes to our blog posts from the database to our backend. Once we receive this data SignalR would then propagate this change to our frontend which would be updated in real-time. 
 The Change Stream would be continuously listening for changes in the database, to achieve this I will be using a hosted service inside my ASP.NET Core server.</p>
 <p>A benefit to this approach is that my blog will be updated in real-time while only making changes to my database layer and leaving my deployed blog as is. I could then use any number of ways to update my blog using a different application like an android app, a web app or just inserting directly into the database like:</p>
 <pre><code>{

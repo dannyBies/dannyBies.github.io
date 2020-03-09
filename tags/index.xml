@@ -16,7 +16,7 @@
        
        <guid>https://dannybies.github.io/posts/how-to-overengineer-a-blog-blazor-part2/</guid>
        <description>&lt;p&gt;&lt;a href=&#34;https://dannybies.github.io/posts/how-to-overengineer-a-blog-blazor/&#34;&gt;In my previous post&lt;/a&gt; I talked about how I decided on the architecture I chose to create a blog application. In this part I will be talking about how I created the blog  using Blazor, SignalR and MongoDB.&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;TL;DR, you can look at the source code on my &lt;a href=&#34;%5Bgithub%5D(%5Bhttps://github.com/dannyBies/BiesBlogBlazor%5D(https://github.com/dannyBies/BiesBlogBlazor)).&#34;&gt;github&lt;/a&gt;.&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;TL;DR, you can look at the source code on my &lt;a href=&#34;https://github.com/dannyBies/BiesBlogBlazor&#34;&gt;github&lt;/a&gt;.&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;To start off we are going to add the latest template for Blazor WebAssembly using the following command:&lt;/p&gt;
 &lt;pre&gt;&lt;code&gt;dotnet new -i Microsoft.AspNetCore.Blazor.Templates::3.2.0-preview1.20073.1
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Also make sure to &lt;a href=&#34;https://dotnet.microsoft.com/download/dotnet-core/3.1&#34;&gt;install the .NET Core 3.1 SDK&lt;/a&gt;.&lt;/p&gt;
@@ -25,7 +25,7 @@
 &lt;p&gt;After creating the solution you can confirm that everything works by using Visual Studio to run the application and the default web app will be opened:&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://dannybies.github.io/images/run-blazor.png&#34; alt=&#34;run-blazor&#34;&gt;&lt;/p&gt;
 &lt;h2 id=&#34;setting-up-the-database-layer&#34;&gt;Setting up the database layer&lt;/h2&gt;
-&lt;p&gt;After confirming that everything works we can begin setting up our database. We will be using MongoDB Change Streams, so we can either run MongoDB locally or use &lt;a href=&#34;%5Bhttps://www.mongodb.com/cloud/atlas%5D(https://www.mongodb.com/cloud/atlas)&#34;&gt;MongoDB Atlas&lt;/a&gt; to save time from setting everything up ourselves. As we will be using Change Streams, a requirement is that our database needs to be set up as either a replica set or a sharded cluster because we need an &lt;a href=&#34;%5Bhttps://docs.mongodb.com/manual/core/replica-set-oplog/%5D(https://docs.mongodb.com/manual/core/replica-set-oplog/)&#34;&gt;Oplog&lt;/a&gt; for Change Streams to work. MongoDB Atlas will manage all of this for us and it has a free tier which is all we will need for this project. You can use Atlas or run it locally, just make sure that you have a valid connectionstring to connect to the database.&lt;/p&gt;
+&lt;p&gt;After confirming that everything works we can begin setting up our database. We will be using MongoDB Change Streams, so we can either run MongoDB locally or use &lt;a href=&#34;https://www.mongodb.com/cloud/atlas&#34;&gt;MongoDB Atlas&lt;/a&gt; to save time from setting everything up ourselves. As we will be using Change Streams, a requirement is that our database needs to be set up as either a replica set or a sharded cluster because we need an &lt;a href=&#34;https://docs.mongodb.com/manual/core/replica-set-oplog/&#34;&gt;Oplog&lt;/a&gt; for Change Streams to work. MongoDB Atlas will manage all of this for us and it has a free tier which is all we will need for this project. You can use Atlas or run it locally, just make sure that you have a valid connectionstring to connect to the database.&lt;/p&gt;
 &lt;p&gt;In the shared project we can now add a new class to represent our BlogPost document. To keep things simple this is the only collection we will be creating. Make sure to add the MongoDB.Bson NuGet package in order to use the attributes.&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-C#&#34; data-lang=&#34;C#&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;BlogPost&lt;/span&gt;
 {
@@ -97,7 +97,7 @@ Finally we add a simple class to contain the settings:&lt;/p&gt;
     }
 }
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;blockquote&gt;
-&lt;p&gt;Note the use of C# 8&amp;rsquo;s IAsyncEnumerable here to make sure that we process data as it comes through instead of processing it in batches. If you want to know more about IAsyncEnumerable I recommend reading &lt;a href=&#34;%5Bhttps://dotnetcoretutorials.com/2019/01/09/iasyncenumerable-in-c-8/%5D(https://dotnetcoretutorials.com/2019/01/09/iasyncenumerable-in-c-8/)&#34;&gt;this article&lt;/a&gt;  because it explains what it does quite nicely.&lt;/p&gt;
+&lt;p&gt;Note the use of C# 8&amp;rsquo;s IAsyncEnumerable here to make sure that we process data as it comes through instead of processing it in batches. If you want to know more about IAsyncEnumerable I recommend reading &lt;a href=&#34;https://dotnetcoretutorials.com/2019/01/09/iasyncenumerable-in-c-8/&#34;&gt;this article&lt;/a&gt; because it explains what it does quite nicely.&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;With this in place we can continuously listen for changes in our BlogPost collection. To do this we will be spinning up a hosted service, so we can listen and process BlogPosts in the background.&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-C#&#34; data-lang=&#34;C#&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;BlogPostFeedHostedService&lt;/span&gt; : BackgroundService
@@ -153,7 +153,7 @@ Dependency Injection that ASP.NET Core provides to get our MongoOptions so we ca
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;With this setup you can run the program and you should get the same message every second.
 &lt;img src=&#34;https://dannybies.github.io/images/fetch-feed-output.png&#34; alt=&#34;create-blazor&#34;&gt;&lt;/p&gt;
 &lt;h2 id=&#34;setting-up-signalr&#34;&gt;Setting up SignalR&lt;/h2&gt;
-&lt;p&gt;Now that we&amp;rsquo;ve got our background service running we can work on adding SignalR to this service in order to notify our Blazor client when a new BlogPost gets added. To get this working we set up a simple &lt;a href=&#34;%5Bhttps://docs.microsoft.com/en-us/aspnet/core/signalr/hubs?view=aspnetcore-3.1%5D(https://docs.microsoft.com/en-us/aspnet/core/signalr/hubs?view=aspnetcore-3.1)&#34;&gt;strongly typed SignalR hub&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Now that we&amp;rsquo;ve got our background service running we can work on adding SignalR to this service in order to notify our Blazor client when a new BlogPost gets added. To get this working we set up a simple &lt;a href=&#34;https://docs.microsoft.com/en-us/aspnet/core/signalr/hubs?view=aspnetcore-3.1&#34;&gt;strongly typed SignalR hub&lt;/a&gt;&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-C#&#34; data-lang=&#34;C#&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;BlogHub&lt;/span&gt; : Hub&amp;lt;IBlogFeed&amp;gt;
 {
 }
@@ -224,11 +224,11 @@ Dependency Injection that ASP.NET Core provides to get our MongoOptions so we ca
     &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Description&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;My description&amp;#34;&lt;/span&gt;,
     &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Content&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;My content&amp;#34;&lt;/span&gt;
 }
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;With some small changes to the styling of the page (which you can in the &lt;a href=&#34;%5Bhttps://github.com/dannyBies/BiesBlogBlazor%5D(https://github.com/dannyBies/BiesBlogBlazor)&#34;&gt;sourcecode&lt;/a&gt;) this will result in the following view:
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;With some small changes to the styling of the page (which you can in the &lt;a href=&#34;https://github.com/dannyBies/BiesBlogBlazor&#34;&gt;sourcecode&lt;/a&gt;)) this will result in the following view:
 &lt;img src=&#34;https://dannybies.github.io/images/blazor-result.png&#34; alt=&#34;create-blazor&#34;&gt;&lt;/p&gt;
 &lt;h2 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h2&gt;
-&lt;p&gt;It turned out to be quite easy to get everything working even though Blazor WebAssembly is on a preview version. The generated template by Visual Studio and documentation around Blazor and SignalR was all I really needed to get this up and running within hours. You can check out the source code on my &lt;a href=&#34;%5Bhttps://github.com/dannyBies/BiesBlogBlazor%5D(https://github.com/dannyBies/BiesBlogBlazor)&#34;&gt;github&lt;/a&gt;.&lt;/p&gt;
-&lt;p&gt;I will be writing more of these posts in the future. If you enjoyed reading this or have any feedback please let me know on &lt;a href=&#34;%5Bhttps://twitter.com/DannyBies%5D(https://twitter.com/DannyBies)&#34;&gt;Twitter&lt;/a&gt;!&lt;/p&gt;
+&lt;p&gt;It turned out to be quite easy to get everything working even though Blazor WebAssembly is on a preview version. The generated template by Visual Studio and documentation around Blazor and SignalR was all I really needed to get this up and running within hours. You can check out the source code on my &lt;a href=&#34;https://github.com/dannyBies/BiesBlogBlazor&#34;&gt;github&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;I will be writing more of these posts in the future. If you enjoyed reading this or have any feedback please let me know on &lt;a href=&#34;https://twitter.com/DannyBies&#34;&gt;Twitter&lt;/a&gt;!&lt;/p&gt;
 </description>
      </item>
    

@@ -1,0 +1,416 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+  <title>BiesBlog</title>
+  <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="BiesBlog: A blog about all things related to programming" />
+<meta name="author" content="Danny van der Biezen" /><meta property="og:title" content="How to overengineer a blog using Blazor WebAssembly - The code" />
+<meta property="og:description" content="In my previous post I talked about how I decided on the architecture I chose to create a blog application. In this part I will be talking about how I created the blog using Blazor, SignalR and MongoDB." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://dannybies.github.io/posts/how-to-overengineer-a-blog-blazor-part2/" />
+<meta property="article:published_time" content="2020-03-08T00:00:00+00:00" />
+<meta property="article:modified_time" content="2020-03-08T00:00:00+00:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="How to overengineer a blog using Blazor WebAssembly - The code"/>
+<meta name="twitter:description" content="In my previous post I talked about how I decided on the architecture I chose to create a blog application. In this part I will be talking about how I created the blog using Blazor, SignalR and MongoDB."/>
+
+<meta name="generator" content="Hugo 0.65.2" />
+    
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" integrity="sha256-l85OmPOjvil/SOvVt3HnSSjzF1TUMyT9eV0c2BzEGzU=" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://dannybies.github.io/fontawesome/css/all.min.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Slab|Ruda" />
+  <link rel="stylesheet" type="text/css" href="https://dannybies.github.io/css/styles.css" /><link rel='stylesheet' href='https://dannybies.github.io/css/custom.css'></head>
+
+<body>
+  <div id="container">
+    <header>
+      <h1>
+                <a href="https://dannybies.github.io/">BiesBlog</a>
+            </h1>
+
+      <ul id="social-media">
+             <li>
+               <a href="https://github.com/dannybies" title="GitHub">
+               <i class="fab fa-github fa-lg"></i>
+               </a>
+             </li>
+             <li>
+               <a href="https://twitter.com/dannybies" title="Twitter">
+               <i class="fab fa-twitter fa-lg"></i>
+               </a>
+             </li>
+             <li>
+               <a href="https://linkedin.com/in/dannyvdbiezen" title="LinkedIn">
+               <i class="fab fa-linkedin fa-lg"></i>
+               </a>
+             </li>
+      </ul>
+      
+      <p><em>A blog about all things related to programming</em></p>
+      
+    </header>
+
+    
+<nav>
+    <ul>
+        
+        <li>
+            <a class="" href="https://dannybies.github.io/posts/">
+                <i class="fa-li fa  fa-lg"></i><span>Posts</span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="" href="https://dannybies.github.io/about/">
+                <i class="fa-li fa  fa-lg"></i><span>About</span>
+            </a>
+        </li>
+        
+    </ul>
+</nav>
+
+
+    <main>
+
+
+
+
+<article>
+
+    <h1>How to overengineer a blog using Blazor WebAssembly - The code</h1>
+
+    
+      <aside>
+    <ul>
+        <li>
+            <time class="post-date" datetime="2020-03-08T00:00:00Z">Mar 8, 2020</time>
+        </li>
+        
+
+        
+
+        <li>7 minutes read</li>
+    </ul>
+</aside>
+
+    
+
+    
+
+
+    <p><a href="https://dannybies.github.io/posts/how-to-overengineer-a-blog-blazor/">In my previous post</a> I talked about how I decided on the architecture I chose to create a blog application. In this part I will be talking about how I created the blog  using Blazor, SignalR and MongoDB.</p>
+<p><strong>TL;DR, you can look at the source code on my <a href="%5Bgithub%5D(%5Bhttps://github.com/dannyBies/BiesBlogBlazor%5D(https://github.com/dannyBies/BiesBlogBlazor)).">github</a>.</strong></p>
+<p>To start off we are going to add the latest template for Blazor WebAssembly using the following command:</p>
+<pre><code>dotnet new -i Microsoft.AspNetCore.Blazor.Templates::3.2.0-preview1.20073.1
+</code></pre><p>Also make sure to <a href="https://dotnet.microsoft.com/download/dotnet-core/3.1">install the .NET Core 3.1 SDK</a>.</p>
+<p>After the installation is complete we can create a new solution using the newly available &ldquo;Blazor WebAssembly App&rdquo; template in Visual Studio. Under advanced make sure to select &ldquo;ASP.NET Core Hosted&rdquo; as we will be using a server for our Change Stream and SignalR.</p>
+<p><img src="https://dannybies.github.io/images/create-blazor.png" alt="create-blazor"></p>
+<p>After creating the solution you can confirm that everything works by using Visual Studio to run the application and the default web app will be opened:</p>
+<p><img src="https://dannybies.github.io/images/run-blazor.png" alt="run-blazor"></p>
+<h2 id="setting-up-the-database-layer">Setting up the database layer</h2>
+<p>After confirming that everything works we can begin setting up our database. We will be using MongoDB Change Streams, so we can either run MongoDB locally or use <a href="%5Bhttps://www.mongodb.com/cloud/atlas%5D(https://www.mongodb.com/cloud/atlas)">MongoDB Atlas</a> to save time from setting everything up ourselves. As we will be using Change Streams, a requirement is that our database needs to be set up as either a replica set or a sharded cluster because we need an <a href="%5Bhttps://docs.mongodb.com/manual/core/replica-set-oplog/%5D(https://docs.mongodb.com/manual/core/replica-set-oplog/)">Oplog</a> for Change Streams to work. MongoDB Atlas will manage all of this for us and it has a free tier which is all we will need for this project. You can use Atlas or run it locally, just make sure that you have a valid connectionstring to connect to the database.</p>
+<p>In the shared project we can now add a new class to represent our BlogPost document. To keep things simple this is the only collection we will be creating. Make sure to add the MongoDB.Bson NuGet package in order to use the attributes.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C#" data-lang="C#"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">BlogPost</span>
+{
+<span style="color:#a6e22e">    [BsonId(IdGenerator = typeof(StringObjectIdGenerator))]</span>
+<span style="color:#a6e22e">    [BsonRepresentation(BsonType.ObjectId)]</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">string</span> Id { <span style="color:#66d9ef">get</span>; <span style="color:#66d9ef">set</span>; }
+<span style="color:#a6e22e">    [Required]</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">string</span> CreatedBy { <span style="color:#66d9ef">get</span>; <span style="color:#66d9ef">set</span>; }
+<span style="color:#a6e22e">    [Required]</span>
+    <span style="color:#66d9ef">public</span> DateTime CreatedOn { <span style="color:#66d9ef">get</span>; <span style="color:#66d9ef">set</span>; }
+<span style="color:#a6e22e">    [Required]</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">string</span> Title { <span style="color:#66d9ef">get</span>; <span style="color:#66d9ef">set</span>; }
+<span style="color:#a6e22e">    [Required]</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">string</span> Description { <span style="color:#66d9ef">get</span>; <span style="color:#66d9ef">set</span>; }
+<span style="color:#a6e22e">    [Required]</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">string</span> Content { <span style="color:#66d9ef">get</span>; <span style="color:#66d9ef">set</span>; }
+}
+</code></pre></div><p>Now let&rsquo;s add an appsettings.json file in our server project in which we will add our database settings:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-JSON" data-lang="JSON">{
+  <span style="color:#f92672">&#34;Mongo&#34;</span>: {
+    <span style="color:#f92672">&#34;ConnectionString&#34;</span>: <span style="color:#e6db74">&#34;Your-connection-string&#34;</span>,
+    <span style="color:#f92672">&#34;Database&#34;</span>: <span style="color:#e6db74">&#34;Blog&#34;</span>
+  }
+}
+</code></pre></div><p>We will make use of ASP.NET Core&rsquo;s Dependency Injection to inject these settings into our classes. To configure this we add the following constructor to our Startup.cs.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C#" data-lang="C#"><span style="color:#66d9ef">private</span> <span style="color:#66d9ef">readonly</span> IConfiguration Configuration;
+
+<span style="color:#66d9ef">public</span> Startup(IConfiguration configuration)
+{
+    Configuration = configuration;
+}
+</code></pre></div><p>Then we can add the appsettings as a singleton to be able to inject it into our classes.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C#" data-lang="C#">services.AddSingleton(Configuration.GetSection(<span style="color:#e6db74">&#34;Mongo&#34;</span>).Get&lt;MongoOptions&gt;());
+</code></pre></div><p>to the ConfigureServices method in Startup.cs. 
+Finally we add a simple class to contain the settings:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C#" data-lang="C#"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MongoOptions</span>
+{
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">string</span> ConnectionString { <span style="color:#66d9ef">get</span>; <span style="color:#66d9ef">set</span>; }
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">string</span> Database { <span style="color:#66d9ef">get</span>; <span style="color:#66d9ef">set</span>; }
+}
+</code></pre></div><h2 id="setting-up-a-change-stream">Setting up a change stream</h2>
+<p>Now that we have set up our database let&rsquo;s look at using a change stream to stream data being inserted in the database back to our Server. We will need to add the MongoDB.Driver NuGet package to connect to our database.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C#" data-lang="C#"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MongoDbChangeStreamFeed</span>&lt;T&gt;
+{
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">readonly</span> IMongoCollection&lt;T&gt; _collection;
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">readonly</span> TimeSpan _retryIfNoDocumentsFoundDelay;
+
+    <span style="color:#66d9ef">public</span> MongoDbChangeStreamFeed(IMongoCollection&lt;T&gt; collection, TimeSpan retryIfNoDocumentsFoundDelay)
+    {
+        _collection = collection;
+        _retryIfNoDocumentsFoundDelay = retryIfNoDocumentsFoundDelay;
+    }
+
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">async</span> IAsyncEnumerable&lt;T&gt; FetchFeed(PipelineDefinition&lt;ChangeStreamDocument&lt;T&gt;, ChangeStreamDocument&lt;T&gt;&gt; filterPipeline = <span style="color:#66d9ef">null</span>, [EnumeratorCancellation]CancellationToken cancellationToken = <span style="color:#66d9ef">default</span>)
+    {
+        <span style="color:#66d9ef">using</span> var changeStreamFeed = <span style="color:#66d9ef">await</span> _collection.WatchAsync(filterPipeline, cancellationToken: cancellationToken);
+        <span style="color:#66d9ef">while</span> (!cancellationToken.IsCancellationRequested)
+        {
+            <span style="color:#66d9ef">while</span> (<span style="color:#66d9ef">await</span> changeStreamFeed.MoveNextAsync(cancellationToken))
+            {
+                <span style="color:#66d9ef">using</span> var changeStreamFeedCurrentEnumerator = changeStreamFeed.Current.GetEnumerator();
+                <span style="color:#66d9ef">while</span> (changeStreamFeedCurrentEnumerator.MoveNext())
+                {
+                    <span style="color:#66d9ef">yield</span> <span style="color:#66d9ef">return</span> changeStreamFeedCurrentEnumerator.Current.FullDocument;
+                }
+            }
+            <span style="color:#66d9ef">await</span> Task.Delay(_retryIfNoDocumentsFoundDelay, cancellationToken);
+        }
+    }
+}
+</code></pre></div><blockquote>
+<p>Note the use of C# 8&rsquo;s IAsyncEnumerable here to make sure that we process data as it comes through instead of processing it in batches. If you want to know more about IAsyncEnumerable I recommend reading <a href="%5Bhttps://dotnetcoretutorials.com/2019/01/09/iasyncenumerable-in-c-8/%5D(https://dotnetcoretutorials.com/2019/01/09/iasyncenumerable-in-c-8/)">this article</a>  because it explains what it does quite nicely.</p>
+</blockquote>
+<p>With this in place we can continuously listen for changes in our BlogPost collection. To do this we will be spinning up a hosted service, so we can listen and process BlogPosts in the background.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C#" data-lang="C#"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">BlogPostFeedHostedService</span> : BackgroundService
+{
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">readonly</span> MongoOptions _mongoOptions;
+
+    <span style="color:#66d9ef">public</span> BlogPostFeedHostedService(MongoOptions mongoOptions)
+    {
+        _mongoOptions = mongoOptions;
+    }
+
+    <span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">async</span> Task ExecuteAsync(CancellationToken cancellationToken)
+    {
+        <span style="color:#66d9ef">var</span> client = <span style="color:#66d9ef">new</span> MongoClient(_mongoOptions.ConnectionString);
+        <span style="color:#66d9ef">var</span> database = client.GetDatabase(_mongoOptions.Database);
+        <span style="color:#66d9ef">var</span> collection = database.GetCollection&lt;BlogPost&gt;(nameof(BlogPost));
+        
+        <span style="color:#66d9ef">var</span> insertOperationsOnlyFilter = <span style="color:#66d9ef">new</span> EmptyPipelineDefinition&lt;ChangeStreamDocument&lt;BlogPost&gt;&gt;().Match(x =&gt; x.OperationType == ChangeStreamOperationType.Insert);
+        <span style="color:#66d9ef">var</span> blogPostFeed = <span style="color:#66d9ef">new</span> MongoDbChangeStreamFeed&lt;BlogPost&gt;(collection, TimeSpan.FromSeconds(<span style="color:#ae81ff">5</span>));
+
+        <span style="color:#66d9ef">try</span>
+        {
+            <span style="color:#66d9ef">await</span> <span style="color:#66d9ef">foreach</span> (<span style="color:#66d9ef">var</span> blogPost <span style="color:#66d9ef">in</span> blogPostFeed.FetchFeed(insertOperationsOnlyFilter, cancellationToken))
+            {
+                <span style="color:#75715e">//Process data
+</span><span style="color:#75715e"></span>            }
+        }
+        <span style="color:#66d9ef">catch</span> (OperationCanceledException) { }
+    }
+}
+</code></pre></div><p>Because we previously used</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C#" data-lang="C#">services.AddSingleton(Configuration.GetSection(<span style="color:#e6db74">&#34;Mongo&#34;</span>).Get&lt;MongoOptions&gt;()); 
+</code></pre></div><p>we can make use of the built-in
+Dependency Injection that ASP.NET Core provides to get our MongoOptions so we can set up our connection to the database.</p>
+<p>The final step is to register the background service in Startup.cs</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C#" data-lang="C#">services.AddHostedService&lt;BlogPostFeedHostedService&gt;();
+</code></pre></div><p>Let&rsquo;s see if this everything is setup correctly. To do this we&rsquo;ll add</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C#" data-lang="C#">Debug.WriteLine(<span style="color:#e6db74">&#34;A new blog post was just created!&#34;</span>); 
+</code></pre></div><p>to our await foreach code block in BlogPostFeedHostedService.cs.</p>
+<p>This should now log the above message every time you insert a document into the BlogPostCollection. To quickly test if it works without using the database we can change our FetchFeed method to yield return default:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C#" data-lang="C#"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">async</span> IAsyncEnumerable&lt;T&gt; FetchFeed(PipelineDefinition&lt;ChangeStreamDocument&lt;T&gt;, ChangeStreamDocument&lt;T&gt;&gt; filterPipeline = <span style="color:#66d9ef">null</span>, [EnumeratorCancellation]CancellationToken cancellationToken = <span style="color:#66d9ef">default</span>)
+{
+    <span style="color:#66d9ef">using</span> var changeStreamFeed = <span style="color:#66d9ef">await</span> _collection.WatchAsync(filterPipeline, cancellationToken: cancellationToken);
+    <span style="color:#66d9ef">while</span> (!cancellationToken.IsCancellationRequested)
+    {
+        <span style="color:#66d9ef">while</span> (<span style="color:#66d9ef">await</span> changeStreamFeed.MoveNextAsync(cancellationToken))
+        {
+            <span style="color:#66d9ef">yield</span> <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">default</span>;
+        }
+        <span style="color:#66d9ef">await</span> Task.Delay(_retryIfNoDocumentsFoundDelay, cancellationToken);
+    }
+}
+</code></pre></div><p>With this setup you can run the program and you should get the same message every second.
+<img src="https://dannybies.github.io/images/fetch-feed-output.png" alt="create-blazor"></p>
+<h2 id="setting-up-signalr">Setting up SignalR</h2>
+<p>Now that we&rsquo;ve got our background service running we can work on adding SignalR to this service in order to notify our Blazor client when a new BlogPost gets added. To get this working we set up a simple <a href="%5Bhttps://docs.microsoft.com/en-us/aspnet/core/signalr/hubs?view=aspnetcore-3.1%5D(https://docs.microsoft.com/en-us/aspnet/core/signalr/hubs?view=aspnetcore-3.1)">strongly typed SignalR hub</a></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C#" data-lang="C#"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">BlogHub</span> : Hub&lt;IBlogFeed&gt;
+{
+}
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">interface</span> IBlogFeed
+{
+    Task BlogPostCreated(BlogPost blogPost);
+}
+</code></pre></div><p>We have to configure our server to use SignalR, we do that in our startup.cs. We add the following line to ConfigureServices()</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C#" data-lang="C#">services.AddSignalR();
+</code></pre></div><p>And finally add the following line to the endpoint mapping in Configure()</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C#" data-lang="C#">endpoints.MapHub&lt;BlogHub&gt;(<span style="color:#e6db74">&#34;/blogHub&#34;</span>);
+</code></pre></div><p>We can now use this hub to send messages to all clients that are connected to /blogHub. We can add a few lines of code to our background service to send a message to every connected client every time a BlogPost has been created. We make use of ASP.NET Core&rsquo;s Dependency Injection one more time to inject the BlogHub into our constructor.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C#" data-lang="C#"><span style="color:#66d9ef">private</span> <span style="color:#66d9ef">readonly</span> MongoOptions _mongoOptions;
+<span style="color:#66d9ef">private</span> <span style="color:#66d9ef">readonly</span> IHubContext&lt;BlogHub, IBlogFeed&gt; _blogHub;
+<span style="color:#66d9ef">public</span> BlogPostFeedHostedService(MongoOptions mongoOptions, IHubContext&lt;BlogHub, IBlogFeed&gt; blogHub)
+{
+    _mongoOptions = mongoOptions;
+    _blogHub = blogHub;
+}
+</code></pre></div><p>Then we can simply call the BlogPostCreated method we defined on the IBlogFeed interface to send the BlogPostCreated message to all clients.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C#" data-lang="C#"><span style="color:#66d9ef">await</span> <span style="color:#66d9ef">foreach</span> (<span style="color:#66d9ef">var</span> blogPost <span style="color:#66d9ef">in</span> blogPostFeed.FetchFeed(insertOperationsOnlyFilter, cancellationToken))
+{
+    <span style="color:#66d9ef">await</span> _blogHub.Clients.All.BlogPostCreated(blogPost);
+}
+</code></pre></div><h2 id="setting-up-blazor-webassembly">Setting up Blazor WebAssembly</h2>
+<p>The only thing left for us to do is to set up SignalR on the client-side and show the data.</p>
+<p>In our Index.razor file we can add the following code</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C#" data-lang="C#">@page <span style="color:#e6db74">&#34;/&#34;</span>
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager NavigationManager
+
+@foreach (<span style="color:#66d9ef">var</span> blogPost <span style="color:#66d9ef">in</span> _blogPosts)
+{
+    &lt;article&gt;
+        &lt;h1&gt;&lt;a href=<span style="color:#e6db74">&#34;blog/@blogPost.Id&#34;</span>&gt;@blogPost.Title&lt;/a&gt;&lt;/h1&gt;
+        @blogPost.Description
+    &lt;/article&gt;
+}
+@code {
+    <span style="color:#66d9ef">private</span> HubConnection _hubConnection;
+    <span style="color:#66d9ef">private</span> List&lt;BiesBlogBlazor.Shared.Entities.BlogPost&gt; _blogPosts = <span style="color:#66d9ef">new</span> List&lt;BiesBlogBlazor.Shared.Entities.BlogPost&gt;();
+
+    <span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">async</span> Task OnInitializedAsync()
+    {
+        _hubConnection = <span style="color:#66d9ef">new</span> HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri(<span style="color:#e6db74">&#34;/blogHub&#34;</span>))
+            .Build();
+
+        _hubConnection.On(<span style="color:#e6db74">&#34;BlogPostCreated&#34;</span>, (BiesBlogBlazor.Shared.Entities.BlogPost blogPost) =&gt;
+        {
+            _blogPosts.Add(blogPost);
+            StateHasChanged();
+        });
+
+        <span style="color:#66d9ef">await</span> _hubConnection.StartAsync();
+    }
+}
+</code></pre></div><p>When we navigate to our index.razor page we will open a websocket to our Server using SignalR and subscribe to all BlogPostCreated messages. When we receive these we update our list of blogPosts and the corresponding HTML.</p>
+<p>And that&rsquo;s it! We&rsquo;ve got everything ready now :D. You can try it out by directly inserting the document below into your database.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-JSON" data-lang="JSON">{
+    <span style="color:#f92672">&#34;CreatedBy&#34;</span>: <span style="color:#e6db74">&#34;Danny&#34;</span>,
+    <span style="color:#f92672">&#34;CreatedOn&#34;</span>: {
+        <span style="color:#f92672">&#34;$date&#34;</span>: {
+            <span style="color:#f92672">&#34;$numberLong&#34;</span>: <span style="color:#e6db74">&#34;1582284312358&#34;</span>
+        }
+    },
+    <span style="color:#f92672">&#34;Title&#34;</span>: <span style="color:#e6db74">&#34;My first blog&#34;</span>,
+    <span style="color:#f92672">&#34;Description&#34;</span>: <span style="color:#e6db74">&#34;My description&#34;</span>,
+    <span style="color:#f92672">&#34;Content&#34;</span>: <span style="color:#e6db74">&#34;My content&#34;</span>
+}
+</code></pre></div><p>With some small changes to the styling of the page (which you can in the <a href="%5Bhttps://github.com/dannyBies/BiesBlogBlazor%5D(https://github.com/dannyBies/BiesBlogBlazor)">sourcecode</a>) this will result in the following view:
+<img src="https://dannybies.github.io/images/blazor-result.png" alt="create-blazor"></p>
+<h2 id="conclusion">Conclusion</h2>
+<p>It turned out to be quite easy to get everything working even though Blazor WebAssembly is on a preview version. The generated template by Visual Studio and documentation around Blazor and SignalR was all I really needed to get this up and running within hours. You can check out the source code on my <a href="%5Bhttps://github.com/dannyBies/BiesBlogBlazor%5D(https://github.com/dannyBies/BiesBlogBlazor)">github</a>.</p>
+<p>I will be writing more of these posts in the future. If you enjoyed reading this or have any feedback please let me know on <a href="%5Bhttps://twitter.com/DannyBies%5D(https://twitter.com/DannyBies)">Twitter</a>!</p>
+
+
+</article>
+
+
+<section class="post-nav">
+    <ul>
+        
+        <li>
+            <a href="https://dannybies.github.io/posts/how-to-overengineer-a-blog-blazor-part1/"><i class="fa fa-chevron-circle-left"></i> How to overengineer a blog using Blazor WebAssembly - The architecture</a>
+        </li>
+        
+        
+    </ul>
+</section>
+    
+    
+        <section class="comments-block">
+      <button id="show-comments" style="display: none;"><i class="fa fa-comments"></i> </button>
+</section>
+
+<section id="disqus_thread"></section>
+
+<script>
+      (function () {
+            
+            
+            if (window.location.hostname == "localhost")
+                  return;
+
+            var disqus_loaded = false;
+            var disqus_shortname = 'https-dannybies-github-io';
+            var disqus_button = document.getElementById("show-comments");
+
+            disqus_button.style.display = "";
+            disqus_button.addEventListener("click", disqus, false);
+
+            function disqus() {
+
+                  if (!disqus_loaded) {
+                        disqus_loaded = true;
+
+                        var e = document.createElement("script");
+                        e.type = "text/javascript";
+                        e.async = true;
+                        e.src = "//" + disqus_shortname + ".disqus.com/embed.js";
+                        (document.getElementsByTagName("head")[0] ||
+                              document.getElementsByTagName("body")[0])
+                        .appendChild(e);
+
+                        
+                        document.getElementById("show-comments").style.display = "none";
+                  }
+            }
+
+            
+            var hash = window.location.hash.substr(1);
+            if (hash.length > 8) {
+                  if (hash.substring(0, 8) == "comment-") {
+                        disqus();
+                  }
+            }
+
+            
+            if (/bot|google|baidu|bing|msn|duckduckgo|slurp|yandex/i.test(navigator.userAgent)) {
+                  disqus();
+            }
+      })();
+</script>
+
+    
+
+
+
+
+
+</main>
+</div>
+<script src="https://dannybies.github.io/js/scripts.js"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-158919498-2', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+</body>
+
+</html>
+

@@ -225,7 +225,7 @@ Dependency Injection that ASP.NET Core provides to get our MongoOptions so we ca
     &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Description&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;My description&amp;#34;&lt;/span&gt;,
     &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Content&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;My content&amp;#34;&lt;/span&gt;
 }
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;With some small changes to the styling of the page (which you can in the &lt;a href=&#34;https://github.com/dannyBies/BiesBlogBlazor&#34;&gt;sourcecode&lt;/a&gt;)) this will result in the following view:
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;With some small changes to the styling of the page (which you can find in the &lt;a href=&#34;https://github.com/dannyBies/BiesBlogBlazor&#34;&gt;sourcecode&lt;/a&gt;) this will result in the following view:
 &lt;img src=&#34;https://dannybies.github.io/images/blazor-result.png&#34; alt=&#34;create-blazor&#34;&gt;&lt;/p&gt;
 &lt;h2 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h2&gt;
 &lt;p&gt;It turned out to be quite easy to get everything working even though Blazor WebAssembly is on a preview version. The generated template by Visual Studio and documentation around Blazor and SignalR was all I really needed to get this up and running within hours. You can check out the source code on my &lt;a href=&#34;https://github.com/dannyBies/BiesBlogBlazor&#34;&gt;github&lt;/a&gt;).&lt;/p&gt;
